@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gender Mainstreaming Review Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../admin/contents/css/proposal_details.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-bordered">
+                <tr>
+                    <td class="text-center logo-container"><img src="../../assets/img/useplogo.png" class="logo" alt="Logo"></td>
+                    <td class="text-center">
+                        <div>Republic of the Philippines</div>
+                        <div class="uni-name"><h2>University of Southeastern Philippines</h2></div>
+                        <div>Iñigo St., Bo. Obrero, Davao City 8000</div>
+                        <div>Telephone: (082) 227-8192</div>
+                        <div>Website: <a href="http://www.usep.edu.ph">www.usep.edu.ph</a></div>
+                        <div>Email: <a href="mailto:president@usep.edu.ph">president@usep.edu.ph</a></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="text-center font-weight-bold">GENDER MAINSTREAMING REVIEW FORM</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <p>Kindly provide all the required information on this form.</p>
+
+    <table class="table table-bordered bg-white">
+        <tr>
+            <td><strong>TITLE OF PROPOSAL:</strong> <span id="title"></span></td>
+        </tr>
+        <tr>
+            <td><strong>NAME OF THE PROPONENT/S:</strong> <span id="proponent"></span></td>
+        </tr>
+        <tr>
+            <td><strong>OFFICE/UNIT:</strong> <span id="office"></span></td>
+        </tr>
+        <tr>
+            <td><strong>PROGRAM/PROJECT DESCRIPTION</strong> <span id="description"></span></td>
+        </tr>
+    </table>
+
+    <table class="table table-bordered bg-white">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">No</th>
+                <th scope="col">Partly</th>
+                <th scope="col">Yes</th>
+                <th scope="col">Score</th>
+                <th scope="col">Comments/Recommendations</th>
+            </tr>
+        </thead>
+        <tbody id="formBody">
+            <!-- Form rows will be inserted here -->
+        </tbody>
+    </table>
+    <div>Total Score: <span id="totalScore">0.00</span></div>
+</div>
+
+<script>
+$(document).ready(function() {
+    const proposalId = getQueryParam('id');
+    console.log("ambot")
+    // const jsonString = "[{\"item\":\"item2\",\"score\":0,\"comment\":\"\"},{\"item\":\"item3\",\"score\":0.5,\"comment\":\"\"},{\"item\":\"item4\",\"score\":1,\"comment\":\"\"},{\"item\":\"item6\",\"score\":1,\"comment\":\"\"},{\"item\":\"item7\",\"score\":0.5,\"comment\":\"\"}";
+    // $.ajax({
+    //     url: '../../controller/evaluator/fetch_document_details.php?id=' + proposalId,
+    //     type: 'GET',
+    //     dataType: 'text',
+    //     success: function(response) {
+    //         const data = JSON.parse(response);
+    //     },
+    //     error: function(xhr, status, error) {
+    //         console.error('Error fetching document details:', error);
+    //         alert('Error fetching document details. Please try again later.');
+    //     }
+    // });
+    // try {
+    //     const jsonArray = JSON.parse(jsonString + "]");
+    //     console.log(jsonArray);
+    // } catch (error) {
+    //     console.error("Invalid JSON string:", error);
+    // }
+
+    $.ajax({
+        url: '../../controller/proponents/fetch_document_details.php?id=' + proposalId,
+        type: 'GET',
+        dataType: 'text',
+        success: function(response) {
+            console.log("ambot")
+            console.log(response)
+            const data = JSON.parse(response);
+            console.log(data);
+            let jsonString = data[0].document_file;
+            console.log(JSON.parse(JSON.parse(jsonString)))
+            data_file = JSON.parse(JSON.parse(jsonString))
+
+            // console.log(JSON.parse("items": data[0].document_file))
+            // Parse the JSON string into a JavaScript object
+            // const documentJson = JSON.parse(data[0].document_file);
+            
+            // // Log the JavaScript object in JSON format
+            // console.log(JSON.stringify(documentJson, null, 2));
+            // // const documentFile = JSON.parse(data[0].document_file);
+            // // console.log(JSON.parse(documentFile))
+            // // console.log(documentFile)
+            // populateForm(data_file);
+            // calculateTotalScore();
+
+            $.ajax({
+                url: '../../controller/evaluator/fetch_proposal_details.php?id=' + data[0].proposer_id,
+                type: 'GET',
+                dataType: 'text',
+                success: function(response1) {
+                    const response2 = JSON.parse(response1);
+                    $('#title').text(response2.title);
+                    $('#proponent').text(response2.proponent_name);
+                    $('#office').text(response2.office);
+                    $('#description').text(response2.description);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching proposal details:', error);
+                    alert('Error fetching proposal details. Please try again later.');
+                }
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching document details:', error);
+            alert('Error fetching document details. Please try again later.');
+        }
+    });
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    function populateForm(documentFile) {
+        $('#formBody').html(`
+        <tr>
+                <td><strong>1.0 Involvement of women and men (max score: 2; 1 for each item)</strong></td>
+                <td colspan="3"></td>
+                <td><span class="subtotal" id="subtotal1">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>1.1 Participation of women and men in beneficiary groups in problem identification (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item2" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item2" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item2" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score2">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+
+            </tr>
+            <tr>
+                <td><i>1.2 Participation of women and men in beneficiary groups in project design (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item3" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item3" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item3" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score3">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>2.0 Collection of sex-disaggregated and gender-related information (possible scores: 0, 1.0, 2.0)</strong></td>
+                <td class="text-center"><input type="radio" name="item4" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item4" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item4" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score4">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>3.0 Conduct of gender analysis and identification of gender issues (max score: 2, 1 for each item)</strong></td>
+                <td colspan="3"></td>
+                <td><span class="subtotal" id="subtotal3">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>3.1 Analysis of gender gaps and inequalities related to gender roles, perspectives and needs, or access to and control of resources (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item6" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item6" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item6" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score6">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>3.2 Analysis of constraints and opportunities related to women and men's participation in the project (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item7" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item7" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item7" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score7">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>4.0 Gender equality goals, outcomes, and outputs (possible scores: 0, 1.0, 2.0)</strong><br><i>Does the project have clearly stated gender equality goals, objectives, outcomes, or outputs?</i></td>
+                <td class="text-center"><input type="radio" name="item8" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item8" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item8" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score8">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>5.0 Matching strategies with gender issues (possible scores: 0, 1.0, 2.0)</strong><br><i>Do the strategies and activities match the gender issues and gender equality goals identified?</i></td>
+                <td class="text-center"><input type="radio" name="item9" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item9" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item9" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score9">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>6.0 Gender analysis of likely impacts of the project (max score: 2; for each item or question, 0.67)</strong></td>
+                <td colspan="3"></td>
+                <td><span class="subtotal" id="subtotal6">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>6.1 Are women and girl children among the direct or indirect beneficiaries (possible scores: 0, 0.33, 0.67)</i></td>
+                <td class="text-center"><input type="radio" name="item11" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item11" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item11" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score11">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>6.2 Has the project considered its long-term impact on women's socioeconomic status and empowerment (possible scores: 0, 0.33, 0.67)</i></td>
+                <td class="text-center"><input type="radio" name="item12" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item12" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item12" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score12">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>6.3 Has the project included strategies for avoiding or minimizing negative impact on women's status and welfare (possible scores: 0, 0.33, 0.67)</i></td>
+                <td class="text-center"><input type="radio" name="item13" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item13" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item13" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score13">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>7.0 Monitoring targets and indicators (possible scores: 0, 1.0, 2.0)</strong></td>
+                <td class="text-center"><input type="radio" name="item14" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item14" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item14" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score14">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>8.0 Sex-disaggregated database requirement (possible scores: 0, 1.0, 2.0)</strong><br><i>Does the project M&E system require sex-disaggregated data to be collected?</i></td>
+                <td class="text-center"><input type="radio" name="item15" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item15" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item15" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score15">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>9.0 Resources (max score: 2; for each question, 1)</strong></td>
+                <td colspan="3"></td>
+                <td><span class="subtotal" id="subtotal9">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>9.1 Is the project's budget allotment sufficient for gender equality promotion or integration? OR, will the project tap counterpart funds from LGUs/partners for its GAD efforts? (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item17" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item17" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item17" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score17">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>9.2 Does the project have the expertise in promoting gender equality and women's empowerment? OR, does the project commit itself to investing project staff time in building capacities within the project to integrate GAD or promote gender equality? (possible scores: 0, 0.5, 1.0)</i></td>
+                <td class="text-center"><input type="radio" name="item18" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item18" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item18" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score18">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><strong>10.0 Relationship with the agency's GAD efforts (max score: 2; for each question or item, 0.67)</strong></td>
+                <td colspan="3"></td>
+                <td><span class="subtotal" id="subtotal10">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>10.1 Will the project build on or strengthen the agency/NCRFW/government's commitment to the empowerment of women? (possible scores: 0, 0.33, 0.67)</i><br><i>IF THE AGENCY HAS NO GAD PLAN: Will the project help in the formulation of the implementing agency's GAD plan?</i></td>
+                <td class="text-center"><input type="radio" name="item20" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item20" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item20" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score20">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>10.2 Will the project build on the initiatives or actions of other organizations in the area? (possible scores: 0, 0.33, 0.67)</i></td>
+                <td class="text-center"><input type="radio" name="item21" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item21" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item21" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score21">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td><i>10.3 Does the project have an exit plan that will ensure the sustainability of GAD efforts and benefits? (possible scores: 0, 0.33, 0.67)</i></td>
+                <td class="text-center"><input type="radio" name="item22" value="No" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item22" value="Partly" class="score-radio" readonly disabled></td>
+                <td class="text-center"><input type="radio" name="item22" value="Yes" class="score-radio" readonly disabled></td>
+                <td><span class="score" id="score22">0.0</span></td>
+                <td rowspan="1"><textarea class="form-control" rows="2" disabled></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="4"></td>
+                <td><span id="totalScore">0.0</span></td>
+                <td><i>Proposed project is gender-sensitive (proposal passes the GAD test).</i></td>
+            </tr>
+        `);
+
+        documentFile.forEach(item => {
+            $(`input[name=${item.item}][value=${getRadioValue(item.score)}]`).prop('checked', true);
+            $(`#score${item.item.slice(4)}`).text(item.score);
+            $(`textarea[rows=${item.item.slice(4)}]`).val(item.comment);
+        });
+
+        updateTotalScore();
+    }
+
+    function getRadioValue(score) {
+        if (score == 0) return 'No';
+        if (score == 1) return 'Yes';
+        return 'Partly';
+    }
+
+    function updateTotalScore() {
+        let total = 0;
+        $('.score').each(function() {
+            total += parseFloat($(this).text());
+        });
+        $('#totalScore').text(total.toFixed(2));
+    }
+
+    $(document).on('change', '.score-radio', function() {
+        const score = parseFloat($(this).val());
+        const scoreId = $(this).attr('name').slice(4);
+        $(`#score${scoreId}`).text(score);
+        updateTotalScore();
+    });
+
+    function calculateSubtotal(sectionItems) {
+        let subtotal = 0.0;
+        sectionItems.forEach(item => {
+            subtotal += parseFloat($('#' + item).text());
+        });
+        return subtotal.toFixed(1);
+    }
+
+    function calculateTotalScore() {
+        let totalScore = 0.0;
+        $('.score').each(function() {
+            totalScore += parseFloat($(this).text());
+        });
+        $('#totalScore').text(totalScore.toFixed(2));
+
+        // Calculate subtotals for specific sections
+        const subtotals = {
+            'subtotal1': calculateSubtotal(['score2', 'score3']),
+            'subtotal3': calculateSubtotal(['score6', 'score7']),
+            'subtotal6': calculateSubtotal(['score11', 'score12', 'score13']),
+            'subtotal9': calculateSubtotal(['score17', 'score18']),
+            'subtotal10': calculateSubtotal(['score20', 'score21', 'score22'])
+        };
+
+        // Update subtotals in the HTML
+        for (const [subtotalId, subtotalValue] of Object.entries(subtotals)) {
+            $('#' + subtotalId).text(subtotalValue);
+        }
+    }
+});
+</script>
+</body>
+</html>

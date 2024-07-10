@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gad System</title>
+    <link rel="stylesheet" href="css/submit.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="../assets/img/gad.png" type="image/png">
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 class="text-center mt-4 mb-3 text-white">GENDER MAINSTREAMING REVIEW FORM</h1>
+        <form id="proposal-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="proposalTitle" class="text-white">TITLE OF THE PROPOSAL:</label>
+                <input type="text" class="form-control" id="proposalTitle" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="proponentsName" class="text-white">NAME OF THE PROPONENT/S:</label>
+                <input type="text" class="form-control" id="proponentsName" name="proponent_name" required>
+            </div>
+            <div class="form-group">
+                <label for="officeUnit" class="text-white">OFFICE/UNIT:</label>
+                <input type="text" class="form-control" id="officeUnit" name="office" required>
+            </div>
+            <div class="form-group">
+                <label for="programDescription" class="text-white">PROGRAM/PROJECT DESCRIPTION:</label>
+                <textarea class="form-control" id="programDescription" name="description" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="uploadDocuments" class="text-white">UPLOAD DOCUMENT1S:</label>
+                <input type="file" class="form-control-file" id="uploadDocuments" name="document" multiple required>
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#proposal-form').submit(function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Collect form data
+                var formData = new FormData(this);
+
+                // Send form data using AJAX
+                $.ajax({
+                    type: 'POST',
+                    url: '../../controller/proposer/create_proposal.php',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        // Display message from the response
+                        alert(response);
+                        // Redirect to another page after alert is closed
+                        window.location.href = 'submit.html'; // Change the URL to the desired page
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle errors
+                        console.error('Error:', status, error);
+                        alert('An error occurred while submitting the proposal. Please try again later.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
