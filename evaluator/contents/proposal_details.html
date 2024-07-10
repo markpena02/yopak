@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/proposal_details.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="proposal-details">
+            <h1 class="text-center mb-4">Proposal Details</h1>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail">
+                        <h4>TITLE OF PROPOSAL</h4>
+                        <p id="title"></p>
+                        <input type="text" id="title-input" class="form-control" style="display: none;">
+                    </div>
+                    <div class="detail">
+                        <h4>NAME OF THE PROPONENT/S</h4>
+                        <p id="proponent"></p>
+                        <input type="text" id="proponent-input" class="form-control" style="display: none;">
+                    </div>
+                    <div class="detail">
+                        <h4>OFFICE/UNIT</h4>
+                        <p id="office"></p>
+                        <input type="text" id="office-input" class="form-control" style="display: none;">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="detail">
+                        <h4>PROGRAM/PROJECT DESCRIPTION</h4>
+                        <p id="description"></p>
+                        <textarea id="description-input" class="form-control" rows="5" style="display: none;"></textarea>
+                    </div>
+                </div>
+                <!-- <button id="edit-button" class="btn btn-success" style="display: none;">Edit</button> -->
+                <button id="save-button" class="btn btn-primary" style="display: none;">Save</button>
+            </div>
+        </div>
+        <div class="buttons text-center mt-5">
+            <button id="view-documents" class="btn btn-primary mr-3">Download Documents</button>
+            <button id="view-evaluation-form" class="btn btn-secondary">View Evaluation Form</button>
+        </div>
+
+        <div class="table-responsive mt-5">
+            <!-- <button class="btn btn-sm btn-primary" id="add-button">Add +</button> -->
+            <table class="table table-striped" id="additional-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm File Upload</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" id="file-input" multiple class="form-control mb-3">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-upload-button">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        function getQueryParam(param) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        var proposalId = getQueryParam('id');
+
+        // Fetch and display proposal details
+        $.ajax({
+            url: '../../controller/proposer/fetch_proposal_details.php?id=' + proposalId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log(response);
+                $('#title').text(response.title);
+                $('#proponent').text(response.proponent_name);
+                $('#office').text(response.office);
+                $('#description').text(response.description);
+
+                if (response.status === 'Completed') {
+                    $('#view-certificate').show();
+                }
+
+                if (response.status === 'pending') {
+                    $('#edit-button').show();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Fetch and display additional data in table
+        function updateTable() {
+            $.ajax({
+                url: '../../controller/proposer/fetch_additional_data.php?id=' + proposalId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    var tableBody = $('#additional-data-table tbody');
+                    tableBody.empty();
+
+                    if (response && response.length > 0) {
+                        response.forEach(function(file, index) {
+                            var documentPath = file.documentPath.replace(/^(\.\.\/)+/, '');
+                            var fileUrl = "../../controller/" + documentPath + "/" + file.filename;
+
+                            var tableRow = '<tr>' +
+                                '<td>' + (index + 1) + '</td>' +
+                                '<td>' + file.filename + '</td>' +
+                                '<td>' +
+                                    '<a class="btn btn-primary btn-sm mr-2 download-button" href="' + fileUrl + '" download="' + file.filename + '">Download</a>' +
+                                    // '<button class="btn btn-danger btn-sm delete-button" data-file-url="' + fileUrl + '">Delete</button>' +
+                                '</td>' +
+                                '</tr>';
+                            tableBody.append(tableRow);
+                        });
+                    } else {
+                        tableBody.append('<tr><td colspan="3">No files found.</td></tr>');
+                    }
+
+                    // Attach delete button handler
+                    tableBody.on('click', '.delete-button', function() {
+                        var $this = $(this);
+                        var fileUrl = $this.data('file-url');
+                        var adjustedFileUrl = fileUrl.replace('../../controller', '');
+
+                        $.ajax({
+                                url: '../../controller/proposer/files/delete_file.php',
+                                type: 'POST',
+                                data: { fileUrl: adjustedFileUrl },
+                                success: function(response) {
+                                    console.log(response);
+                                    alert('File deleted successfully.');
+                                    $this.closest('tr').remove();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error deleting file:', error);
+                                    alert('Failed to delete file. Please try again.');
+                                }
+                            });
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', xhr.responseText);
+                    alert('Failed to fetch additional data. Please try again.');
+                }
+            });
+        }
+
+        // Initial table update
+        updateTable();
+
+        // Upload files on button click
+        $('#confirm-upload-button').click(function() {
+            var files = $('#file-input')[0].files;
+            if (files.length === 0) {
+                alert('Please select files to upload.');
+                return;
+            }
+
+            $.ajax({
+                url: '../../controller/proposer/fetch_additional_data.php?id=' + proposalId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    var fileUrl = response[0].documentPath;
+                    var formData = new FormData();
+                    formData.append('id', proposalId);
+                    formData.append('url', fileUrl); // Assuming 'documentPath' is directly available in response
+
+                    for (var i = 0; i < files.length; i++) {
+                        formData.append('files[]', files[i]);
+                    }
+
+                    $.ajax({
+                        url: '../../controller/proposer/files/add_file.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            console.log(response);
+                            alert('Files uploaded successfully.');
+                            $('#confirmationModal').modal('hide');
+                            updateTable(); // Refresh table after successful upload
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            alert('Error uploading files');
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Failed to fetch additional data. Please try again.');
+                }
+            });
+        });
+
+        // Download documents button click handler
+        $('#view-documents').click(function() {
+            var proposalId = getQueryParam('id');
+            if (proposalId) {
+                window.location.href = '../../controller/proposer/download_proposal.php?id=' + proposalId;
+            } else {
+                alert('Proposal ID not found.');
+            }
+        });
+
+        // View certificate button click handler
+        $('#view-certificate').click(function() {
+            var proposalId = getQueryParam('id');
+            if (proposalId) {
+                window.location.href = 'hgdg_details.html?id=' + proposalId;
+            } else {
+                alert('Proposal ID not found.');
+            }
+        });
+        $('#view-evaluation-form').click(function() {
+                // Get the proposal ID from the URL
+                var proposalId = getQueryParam('id');
+                console.log("mamiya")
+                console.log(proposalId)
+                if (proposalId) {
+                    // Redirect to the evaluation form based on the proposal ID
+                    window.location.href = './hgdgform1.html?id=' + proposalId;
+                } else {
+                    // Proposal ID not found in the URL, handle accordingly
+                    alert('Proposal ID not found.');
+                }
+            });
+
+        // Edit button click handler
+        // $('#edit-button').click(function() {
+        //     $('#title, #proponent, #office, #description').hide();
+        //     $('#title-input').val($('#title').text()).show();
+        //     $('#proponent-input').val($('#proponent').text()).show();
+        //     $('#office-input').val($('#office').text()).show();
+        //     $('#description-input').val($('#description').text()).show();
+        //     $('#save-button').show();
+        //     $('#edit-button').hide();
+        // });
+
+        // Save button click handler
+        // $('#save-button').click(function() {
+        //     var updatedDetails = {
+        //         id: proposalId,
+        //         title: $('#title-input').val(),
+        //         proponent_name: $('#proponent-input').val(),
+        //         office: $('#office-input').val(),
+        //         description: $('#description-input').val()
+        //     };
+
+        //     $.ajax({
+        //         url: '../../controller/proposer/update_proposal_details.php',
+        //         type: 'POST',
+        //         data: JSON.stringify(updatedDetails),
+        //         contentType: 'application/json',
+        //         success: function(response) {
+        //             console.log(response);
+        //             if (response.status === 'success') {
+        //                 $('#title').text(updatedDetails.title).show();
+        //                 $('#proponent').text(updatedDetails.proponent_name).show();
+        //                 $('#office').text(updatedDetails.office).show();
+        //                 $('#description').text(updatedDetails.description).show();
+        //                 $('#title-input, #proponent-input, #office-input, #description-input').hide();
+        //                 $('#edit-button').show();
+        //                 $('#save-button').hide();
+        //             } else {
+        //                 alert('Error updating proposal details');
+        //             }
+        //         },
+        //         error: function(xhr, status, error) {
+        //             console.error('Error:', error);
+        //             alert('Error updating proposal details');
+        //         }
+        //     });
+        // });
+
+        // Add button click handler to show modal for file upload
+        // $('#add-button').click(function() {
+        //     $('#confirmationModal').modal('show');
+        // });
+
+    });
+    </script>
+</body>
+</html>
